@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Unique Calculator</title>
+  <style>
+    body {
+      background: #27293d;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .calculator {
+      background: #181924;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 6px 24px #23245c66;
+      max-width: 320px;
+      width: 100%;
+    }
+    .calculator-display {
+      width: 100%;
+      height: 50px;
+      font-size: 2rem;
+      text-align: right;
+      border: none;
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      border-radius: 0.5rem;
+      background: #fff;
+      color: #27293d;
+    }
+    .calculator-buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-gap: 0.5rem;
+    }
+    .btn {
+      font-size: 1.25rem;
+      border: none;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      background: #27293d;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover {
+      background: #425df5;
+    }
+    .btn.operator {
+      background: #6a4ab8;
+    }
+    .btn.equals {
+      background: #26c485;
+      color: #fff;
+    }
+    .btn.special {
+      background: #f55767;
+    }
+    .btn.zero {
+      grid-column: span 2;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <input type="text" class="calculator-display" id="display" readonly>
+    <div class="calculator-buttons">
+      <button data-action="clear" class="btn special">C</button>
+      <button data-action="delete" class="btn special">⌫</button>
+      <button data-action="operator" class="btn operator">÷</button>
+      <button data-action="operator" class="btn operator">×</button>
+      <button class="btn">7</button>
+      <button class="btn">8</button>
+      <button class="btn">9</button>
+      <button data-action="operator" class="btn operator">−</button>
+      <button class="btn">4</button>
+      <button class="btn">5</button>
+      <button class="btn">6</button>
+      <button data-action="operator" class="btn operator">+</button>
+      <button class="btn">1</button>
+      <button class="btn">2</button>
+      <button class="btn">3</button>
+      <button data-action="equals" class="btn equals">=</button>
+      <button class="btn zero">0</button>
+      <button class="btn">.</button>
+    </div>
+  </div>
+  <script>
+    const display = document.getElementById('display');
+    const buttons = document.querySelector('.calculator-buttons');
+    let firstValue = '';
+    let operator = '';
+    let awaitingNextValue = false;
+
+    function inputNumber(num) {
+      if (awaitingNextValue) {
+        display.value = num;
+        awaitingNextValue = false;
+      } else {
+        display.value = display.value === '0' ? num : display.value + num;
+      }
+    }
+    function inputDecimal() {
+      if (!display.value.includes('.')) {
+        display.value += '.';
+      }
+    }
+    function handleOperator(nextOperator) {
+      const value = parseFloat(display.value);
+      if (operator && awaitingNextValue) {
+        operator = nextOperator;
+        return;
+      }
+      if (!firstValue) {
+        firstValue = value;
+      } else if (operator) {
+        const result = calculate(operator, firstValue, value);
+        display.value = result;
+        firstValue = result;
+      }
+      operator = nextOperator;
+      awaitingNextValue = true;
+    }
+    function calculate(op, first, second) {
+      switch (op) {
+        case '+': return first + second;
+        case '−': return first - second;
+        case '×': return first * second;
+        case '÷': return second !== 0 ? first / second : 'Err';
+        default: return second;
+      }
+    }
+    function resetCalculator() {
+      display.value = '';
+      firstValue = '';
+      operator = '';
+      awaitingNextValue = false;
+    }
+    function deleteLast() {
+      display.value = display.value.slice(0, -1) || '';
+    }
+
+    buttons.addEventListener('click', (e) => {
+      if (!e.target.matches('button')) return;
+      const { action } = e.target.dataset;
+      const buttonText = e.target.textContent;
+
+      if (!action) {
+        if (buttonText === '.') {
+          inputDecimal();
+        } else {
+          inputNumber(buttonText);
+        }
+        return;
+      }
+      switch (action) {
+        case 'clear':
+          resetCalculator();
+          break;
+        case 'delete':
+          deleteLast();
+          break;
+        case 'operator':
+          handleOperator(buttonText);
+          break;
+        case 'equals':
+          handleOperator(operator);
+          operator = '';
+          awaitingNextValue = false;
+          break;
+      }
+    });
+    resetCalculator();
+  </script>
+</body>
+</html>
